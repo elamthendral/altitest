@@ -1,0 +1,87 @@
+from datetime import datetime
+
+from flask import Blueprint, Flask, jsonify, request
+from sqlalchemy import (Boolean, Column, DateTime, Integer, MetaData, String,
+                        Table, create_engine)
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+app = Flask(__name__)
+
+meta = MetaData()
+toggle_state = Table(
+   'toggle_state', meta, 
+   Column('toggle_id', Integer, primary_key = True), 
+   Column("name", String(50)),
+   Column('state', Boolean), 
+   Column('created_on',DateTime), 
+   Column('modified_on',DateTime),
+   Column('notes', String(100))
+)
+
+Base=declarative_base()
+
+
+SQLALCHEMY_DATABASE_URI = f"mysql+pymysql://admin:password@localhost:3308/alti"
+engine = create_engine(SQLALCHEMY_DATABASE_URI, echo=True)
+meta.create_all(engine)
+connection = engine.connect()
+session = sessionmaker(bind=connection)
+session = session()
+
+class FeatureToggle(Base):
+    __tablename__ = "toggle_state"
+    toggle_id = Column(Integer, primary_key=True)
+    name = Column(String(50), unique=True, nullable=False)
+    state = Column(Boolean, nullable=False)
+    created_on = Column(DateTime, default=datetime.now)
+    modified_on = Column(DateTime, default=datetime.now)
+    notes = Column(String(50))
+
+    def __repr__(self):
+        return "<FeatureToggle(name={self.name!r})>".format(self=self)
+
+
+@app.route('/feature-toggles', methods=['POST'])
+def create_toggle():
+    data = request.json
+    toggle = session.query(FeatureToggle).filter_by(name=data['name']).first()
+    if toggle:
+        return jsonify({'message': f"Toggle '{data['name']}' already exists."}), 400
+    else:
+        toggle = FeatureToggle(name=data['name'], notes=data.get('notes',""), state=data.get('state', False))
+        session.add(toggle)
+        session.commit()
+        return jsonify({'message': f"Toggle '{data['name']}' created successfully."}), 201
+
+@app.route('/feature-toggles/<string:name>', methods=['GET'])
+def get_toggle_state(name):
+    toggle = session.query(FeatureToggle).filter_by(name=name).first()
+    if toggle:
+        return jsonify({'name': toggle.name, 'state': toggle.state})
+    else:
+        return jsonify({'message': f"Toggle '{name}' does not exist."}), 404
+
+@app.route('/feature-toggles/<string:name>/activate', methods=['PUT'])
+def activate_toggle(name):
+    toggle = session.query(FeatureToggle).filter_by(name=name).first()
+    if toggle:
+        toggle.state = True
+        session.commit()
+        return jsonify({'message': f"Toggle '{name}' activated successfully."})
+    else:
+        return jsonify({'message': f"Toggle '{name}' does not exist."}), 404
+
+@app.route('/feature-toggles/<string:name>/deactivate', methods=['PUT'])
+def deactivate_toggle(name):
+    toggle = session.query(FeatureToggle).filter_by(name=name).first()
+    if toggle:
+        toggle.state = False
+        session.commit()
+        return jsonify({'message': f"Toggle '{name}' deactivated successfully."})
+    else:
+        return jsonify({'message': f"Toggle '{name}' does not exist."}), 404
+    
+
+if __name__ == '__main__':
+    app.run(debug=True)
