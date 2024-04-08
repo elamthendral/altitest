@@ -1,35 +1,52 @@
-Microservices Architecture:
+Order Placement:
 
-Divide the application into small, independent services that each serve a specific business function.
-Each microservice should have its own codebase, database, and API, enabling them to be developed, deployed, and scaled independently.
+Shippers place orders through the Order Management Service.
+Order details include origin, destination, freight type, etc.
+The Order Management Service stores the order in the database.
 
-RESTful API Design:
+Mode of Transport Determination:
 
-Use Flask to create RESTful APIs with clear, resource-based URLs and HTTP methods (GET, POST, PUT, DELETE).
-Use Flask's Blueprints to modularize your API routes and handlers.
+The Carrier Service receives the order details.
+Based on factors such as distance, type of freight, and availability, the Carrier Service determines the appropriate mode of transport (On Road, Rail, Air, Ocean).
 
-Database Integration:
+Carrier Assignment:
 
-Use an ORM (Object-Relational Mapping) like SQLAlchemy to interact with your database from Flask.
-Consider using AWS RDS (Relational Database Service) or DynamoDB for your database needs, depending on your application requirements.
+Once the mode of transport is determined, the Carrier Service assigns a carrier for the order.
+Carrier selection may depend on factors like carrier availability, capacity, and specialization in the chosen mode of transport.
 
-Security Measures:
+Position Tracking:
 
-Implement authentication and authorization using Flask's Flask-Security or Flask-JWT-Extended extensions for JWT (JSON Web Tokens) based authentication.
-Secure sensitive data in transit using HTTPS and at rest using encryption.
+The Carrier Service starts tracking the position of the assigned carrier.
+Position updates (longitude and latitude) are received from the carrier every 10 minutes.
+Position updates are stored in the Position Tracking Service.
 
-AWS Integration:
+Exception Handling:
 
-Use AWS API Gateway to expose your Flask APIs as HTTP endpoints.
-Utilize AWS CloudWatch for logging, monitoring, and alerting.
-Use AWS IAM (Identity and Access Management) for managing access permissions and roles.
+The Position Tracking Service monitors position updates for exceptions.
+Flag exceptions such as Carrier Delay, Dwell, and Unaccounted positions based on predefined criteria.
+Notify stakeholders (e.g., Shippers, Carriers) via email or other communication channels in case of exceptions.
 
-Error Handling:
+Order Completion:
 
-Implement robust error handling in your Flask application to gracefully handle exceptions and errors.
-Use Flask's @app.errorhandler decorator to define custom error handlers for different HTTP status codes.
+Once the carrier reaches the destination, the Order Management Service marks the order as completed.
+Finalize the order details and update the status in the database.
 
-Testing and Deployment:
+Security and Authentication:
 
-Write unit tests for your Flask microservices using tools like pytest.
-Use continuous integration and deployment (CI/CD) pipelines to automate testing and deployment processes.
+Implement authentication and authorization mechanisms to secure access to microservices.
+Authenticate users (Shippers, Carriers) before allowing access to protected endpoints.
+Ensure data confidentiality and integrity using encryption and secure communication protocols.
+Monitoring and Logging:
+
+Implement monitoring and logging mechanisms to track the performance and health of microservices.
+Monitor system metrics, logs, and exceptions using tools like AWS CloudWatch, ELK stack, etc.
+
+Scalability and Deployment:
+
+Deploy microservices using containerization (e.g., Docker) and container orchestration platforms (e.g., Kubernetes).
+Use auto-scaling features provided by cloud providers to scale microservices based on demand.
+
+Database Management:
+
+Use a suitable database technology (e.g., MySQL, PostgreSQL, MongoDB) to store order details, carrier information, and position updates.
+Ensure data consistency, availability, and durability by configuring appropriate database configurations and replication strategies.
