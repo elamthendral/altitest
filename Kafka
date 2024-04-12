@@ -1,0 +1,8 @@
+from kafka import KafkaProducer, KafkaConsumer
+
+producer = KafkaProducer(bootstrapserver=['localhost:9094'], key_serializer=lambda k : k.decode(utf-8) if k else None)
+producer.send("topic", key="sdfsdf", value=data)
+
+consumer=KafkaConsumer('topic', bootstrapserver=['localhost:9094'], enable_auto_commit=True, group_id="some_value", 
+                       value_serializer=lambda k: loads(k.encode(utf-8)))
+consumer.poll(timeout_ms=1000)
