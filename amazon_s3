@@ -1,0 +1,3 @@
+1. we can store any format files in s3(media, csv , source code, etc)
+2. Maximum size is 5 TB in a bucket.
+3. sample access url: http://s3.amazonaws.com/<bucket_name>/<object_name>
