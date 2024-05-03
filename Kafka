@@ -9,3 +9,6 @@ consumer.poll(timeout_ms=1000)
 
 
 1)advantages of kafka
+2)What is mean by offset?
+3)How in sync replication is working and how can we configure that?
+4) kafka message file format?
