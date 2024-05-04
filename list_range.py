@@ -42,3 +42,24 @@ def split_list(input, range=4):
     if not final_check_flag:
         output_list.append(sub_list)
     return output_list
+
+3) out="ggiyvgnhykhh"
+output=['gg','hh']
+
+con=''
+cstr=""
+repeat_flag=False
+for i in range(len(out)-1):
+    if out[i]==out[i+1]:
+        repeat_flag=True
+        if not cstr:
+           cstr=out[i]+out[i+1]
+        else:
+            cstr = out[i+1]
+    else:
+        repeat_flag=False
+        if len(cstr)>1:
+            print(cstr)
+        cstr=""
+if repeat_flag:
+    print(cstr)
